@@ -1,0 +1,38 @@
+|     |     |     |
+| --- | --- | --- |
+| |     |     |     |
+| --- | --- | --- |
+| [](https://news.ycombinator.com/) | Hacker News new \| past \| comments \| ask \| show \| jobs \| submit | login | |
+
+| |     |     |     |
+| --- | --- | --- |
+|  |  | Purdue University CS240 Class over 50% of students 'caught' using AI on homework ( reddit.com) |
+|  | 4 points by twaldin 46 days ago \| hide \| past \| favorite \| 5 comments |
+|  |  |
+
+|     |     |     |
+| --- | --- | --- |
+| |     |     |     |
+| --- | --- | --- |
+|  |  | twaldin 46 days ago\[–\]<br>If anyone is interested, the professor, Jeff Turkstra, wrote a paper called 'Tracking Large Class Projects in Real-Time Using Fine-Grained<br>Source Control' https://turkeyland.net/research/encourse.pdf and it's the suspected way the students got found out. | |
+| |     |     |     |
+| --- | --- | --- |
+|  |  | Lerc 46 days ago \| parent\[–\]<br>So surveillance then?<br>It would be interesting to see what regulations and ethics rules this comes under. Frequently these sorts of rights can be signed away in the US, but there are also academic bodies with their own rules that might have a say. | |
+| |     |     |     |
+| --- | --- | --- |
+|  |  | twaldin 46 days ago \| root \| parent\[–\]<br>Sort of, I'm hesitant to say surveillance, since its less of 'running spyware' or something similar and more 'tracking student commit history'; where it gets weird is this section of the paper:<br>In our system, the Makefile or Project file that compiles the<br>project contains Git commit and push commands to automatically<br>commit changes into the student repository. Using this system,<br>changes are tracked every time the project is compiled. When a<br>student modifies a source file as a part of the program-build-test-<br>debug cycle, the Makefile commits and pushes the recent changes<br>into source control. This creates a fine-grained sequence of commits<br>that tell the story of how the program was developed.<br>They basically force-commit to your repo whenever you build your code, so they are able to 'track' your development? | |
+| |     |     |     |
+| --- | --- | --- |
+|  |  | Lerc 45 days ago \| root \| parent\[–\]<br>>They basically force-commit to your repo whenever you build your code, so they are able to 'track' your development <br>I think there is a difference between accessing a record that someone has chosen to make, and causing a record to be made.<br>I think that should be the distinction between search and surveillance. I think both need regulation but surveillance should require a higher standard of of regulation | |
+| |     |     |     |
+| --- | --- | --- |
+|  |  | twaldin 45 days ago \| root \| parent\[–\]<br>Yea this makes sense to me; if they were just analyzing student commit history, but 'hiding & executing code' is conceptually dangerous, facilitates their surveillance, even if they might say "It's just git commit & git push". | | |
+| 
+
+|     |
+| --- |
+|  |
+
+Guidelines \| FAQ \| Lists \| API \| Security \| Legal \| Apply to YC \| Contact
+
+Search: |
