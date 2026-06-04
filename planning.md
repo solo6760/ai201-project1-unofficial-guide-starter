@@ -39,11 +39,11 @@ I decided to use sources from YCombinator's Hacker News, r/Purdue, r/UIUC, and R
      numbers fit the structure of your documents.
      A review-heavy corpus warrants different chunking than a long FAQ. -->
 
-**Chunk size:**
+**Chunk size:** 500 characters.
 
-**Overlap:**
+**Overlap:** 100 characters.
 
-**Reasoning:**
+**Reasoning:** I decided to use a  500-character window to ensure essential context remains bundled, while a 100-character overlap preserves semantic continuity between segments. This balance prevents the loss of specific course details while avoiding the dilution of embedding vectors caused by blending unrelated reviews.
 
 ---
 
@@ -55,11 +55,11 @@ I decided to use sources from YCombinator's Hacker News, r/Purdue, r/UIUC, and R
      would you weigh in choosing a different embedding model — context length, multilingual
      support, accuracy on domain-specific text, latency? -->
 
-**Embedding model:**
+**Embedding model:** all-MiniLM-L6-v2 (via sentence-transformers).
 
-**Top-k:**
+**Top-k:** k = 4.
 
-**Production tradeoff reflection:**
+**Production tradeoff reflection:** Switching from a local model like all-MiniLM-L6-v2 to a commercial API gives me access to a larger context window and superior handling of student slang. However, it forces a tradeoff by introducing network latency, recurring API costs, and rate-limit bottlenecks during high-traffic campus events like registration or finals week.
 
 ---
 
@@ -72,11 +72,11 @@ I decided to use sources from YCombinator's Hacker News, r/Purdue, r/UIUC, and R
 
 | # | Question | Expected answer |
 |---|----------|-----------------|
-| 1 | | |
-| 2 | | |
-| 3 | | |
-| 4 | | |
-| 5 | | |
+| 1 | What are the specific thresholds required to get an 'A' grade in Professor Turkstra's CS240 course? | To earn an A, a student must maintain a >85% homework average, a >85% exam average, and a >90% overall course average. |
+| 2 | What happened during the Spring 2026 CS240 academic integrity scandal regarding assignments prior to HW11? | Professor Turkstra announced that any assignment prior to HW11 could not be evaluated by his tool or investigated using its findings. |
+| 3 | How does the EnCourse tool track student development and coding habits to detect AI usage? | EnCourse forces Git commits and pushes to the student's repository every time the project Makefile or project file compiles code. |
+| 4 | According to the student reviews, how many hours per week do CS240 homework assignments typically take? | Assignments are consistently reported to take anywhere from 15 to 25+ hours per week. |
+| 5 | [Out-of-Scope] Where can I find the syllabus or office hour schedule for Professor Adams' CS course? | "I don't have enough information on that in the provided documents." |
 
 ---
 
@@ -86,9 +86,11 @@ I decided to use sources from YCombinator's Hacker News, r/Purdue, r/UIUC, and R
      Consider: noisy or inconsistent documents, missing source attribution, off-topic
      retrieval, chunks that split key information across boundaries. -->
 
-1.
+1. Rate My Professor and Reddit threads have massive amounts of boilerplate (timestamps, upvote counters, HTML artifacts, user flairs). If not strictly cleaned, this noise will corrupt my embeddings.
 
-2.
+2. If chunks are detached from their source files during the splitting stage, programmatic source attribution will fail, causing the LLM to hallucinate citations.
+
+3. If multiple professors share a last name (e.g., "Dr. Wang" for Data Structures vs. "Dr. Wang" for Machine Learning), semantic search might aggregate their reviews into a single misleading response.
 
 ---
 
@@ -100,6 +102,17 @@ I decided to use sources from YCombinator's Hacker News, r/Purdue, r/UIUC, and R
      You can use ASCII art, a Mermaid diagram, or embed a sketch as an image.
      You'll use this diagram as context when prompting AI tools to implement each stage. -->
 
+```mermaid
+graph TD
+    A[Document Ingestion] -->|Load & Clean Text| B(Chunking)
+    B -->|Generate Vectors| C(Embedding: sentence-transformers/all-MiniLM-L6-v2)
+    C -->|Store Text + Source Metadata| D[(Vector Store: ChromaDB)]
+    E[User Query] -->|Semantic Search| D
+    D -->|Retrieve Top-4 Chunks + Metadata| F(Generation: Prompt Synthesis)
+    E --> F
+    F -->|Inference via Groq API| G(LLM: llama-3.3-70b-versatile)
+    G -->|Grounded & Cited Response| H[User Interface / Gradio App]
+```
 ---
 
 ## AI Tool Plan
@@ -115,7 +128,14 @@ I decided to use sources from YCombinator's Hacker News, r/Purdue, r/UIUC, and R
      with my specified chunk size and overlap" is a plan. -->
 
 **Milestone 3 — Ingestion and chunking:**
+* I will prompt the AI to generate regex patterns to clean the text from `turkstra_rmp.pdf`, scrubbing out UI elements like upvote button text and site headers.
+* I will provide the AI with my file structure (`turkstra_reddit1.txt` through `turkstra_reddit9.md`) and ask it to write a Python script to enforce a recursive 500-character chunk size with a 100-character overlap.
+* I will instruct the AI to write a wrapper that links each generated chunk to its source file name (e.g., `turkstra_ycomb.txt`) so source attribution is locked in early.
 
 **Milestone 4 — Embedding and retrieval:**
+* I will ask the AI to generate the initialization script for a local, persistent ChromaDB client using the `all-MiniLM-L6-v2` embedding model from `sentence-transformers`.
+* I will have the AI generate a semantic search function that takes a student's query, embeds it, queries ChromaDB for the top 4 matches ($k=4$), and prints out both the text chunks and their raw distance scores for evaluation.
 
 **Milestone 5 — Generation and interface:**
+* I will use the AI to stress-test and refine a strict system prompt for `llama-3.3-70b-versatile` via the Groq API, explicitly forcing it to refuse to answer ("I don't have enough information") if the context doesn't explicitly mention the answer.
+* I will prompt the AI to implement the Gradio web UI code matching the required template, mapping user text inputs to our retrieval-generation function and displaying the grounded text and source list in separate, readable textboxes.
