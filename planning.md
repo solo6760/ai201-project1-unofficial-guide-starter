@@ -43,7 +43,7 @@ I decided to use sources from YCombinator's Hacker News, r/Purdue, r/UIUC, and R
 
 **Overlap:** 100 characters.
 
-**Reasoning:** I decided to use a  500-character window to ensure essential context remains bundled, while a 100-character overlap preserves semantic continuity between segments. This balance prevents the loss of specific course details while avoiding the dilution of embedding vectors caused by blending unrelated reviews.
+**Reasoning:** I decided to use a 500-character window to ensure essential context remains bundled, while a 100-character overlap preserves semantic continuity between segments. This balance prevents the loss of specific course details while avoiding the dilution of embedding vectors caused by blending unrelated reviews.
 
 ---
 
