@@ -115,7 +115,7 @@ Keep your answers clear, concise, and professional.
 
 **What the system returned:** "I don't have enough information on that."
 
-**Root cause (tied to a specific pipeline stage):** The failure occurred at the Generation Stage due to an overly restrictive System Prompt Constraint combined with Incomplete Context Matching. As shown in the terminal query trace, the Retrieval Stage actually worked perfectly—it successfully surfaced 4 relevant text chunks from turkstra_ycomb.txt and turkstra_reddit2.md. However, none of those specific chunks explicitly used the exact phrase "track student development and coding habits" word-for-word; they only discussed "tracking student commit history" and automated background Git commands.
+**Root cause (tied to a specific pipeline stage):** The failure occurred at the Generation Stage due to an overly restrictive System Prompt Constraint combined with Incomplete Context Matching. As shown in the terminal query trace, the Retrieval Stage actually worked perfectly. However, none of those specific chunks explicitly used the exact phrase "track student development and coding habits" word-for-word.
 
 **What you would change to fix it:** To resolve this alignment issue, I would adjust the System Prompt instructions to explicitly allow for minor semantic variations. Instead of demanding absolute keyword matching, the prompt should instruct the LLM: "You are permitted to synthesize an answer if the retrieved context describes the underlying mechanism or concept requested, even if the phrasing differs slightly from the user's question." This would unlock the model's reasoning capabilities while maintaining a strong defense against true hallucinations.
 
