@@ -3,10 +3,6 @@ import re
 import pdfplumber
 
 def load_documents(docs_dir="documents"):
-    """
-    Milestone 3: Stage 1 - Document Ingestion
-    Loads text from .txt, .md, and digitally created .pdf files in the documents folder.
-    """
     raw_documents = []
     
     # Verify directory exists
@@ -46,11 +42,6 @@ def load_documents(docs_dir="documents"):
     return raw_documents
 
 def clean_text(text):
-    """
-    Milestone 3: Stage 2 - Text Cleaning
-    Removes HTML artifacts, markdown link wrappers, upvote indicators, 
-    and systemic noise while preserving the raw student insight.
-    """
     # 1. Clear common HTML formatting leftover noise
     text = re.sub(r'&\w+;', ' ', text)
     
@@ -74,10 +65,6 @@ def clean_text(text):
     return text.strip()
 
 def split_into_chunks(cleaned_docs, chunk_size=500, overlap=100):
-    """
-    Milestone 3: Stage 3 - Chunking Strategy
-    Implements a recursive-character baseline split using specified parameters.
-    """
     all_chunks = []
     
     for doc in cleaned_docs:
@@ -119,9 +106,7 @@ def split_into_chunks(cleaned_docs, chunk_size=500, overlap=100):
     return all_chunks
 
 if __name__ == "__main__":
-    print("\n=========================================================")
     print("--- Starting Milestone 3 Document Ingestion Pipeline ---")
-    print("=========================================================")
     
     # Check current workspace architecture
     current_dir = os.getcwd()
@@ -135,7 +120,7 @@ if __name__ == "__main__":
         contents = os.listdir(target_docs_folder)
         print(f"[*] Explicit inventory of files discovered: {contents}")
     else:
-        print("[!] ERROR: The 'documents/' directory does not exist at this path location.")
+        print("ERROR: The 'documents/' directory does not exist at this path location.")
     print("---------------------------------------------------------\n")
 
     # 1. Run Ingestion Execution
@@ -143,7 +128,7 @@ if __name__ == "__main__":
     print(f"\n[*] Pipeline Ingestion Step Complete. Raw Files Loaded: {len(raw_data)}")
     
     if not raw_data:
-        print("[!] STOPPING PIPELINE: No text data gathered. Ensure your .md, .txt, and .pdf files are inside the 'documents/' folder.")
+        print("STOPPING PIPELINE: No text data gathered. Ensure your .md, .txt, and .pdf files are inside the 'documents/' folder.")
         exit()
 
     # 2. Clean Text
@@ -156,7 +141,7 @@ if __name__ == "__main__":
     # 3. Apply Chunking Strategy
     print("[*] Slicing Content into Semantically Guarded Chunks...")
     processed_chunks = split_into_chunks(cleaned_data)
-    print(f"[✓] SUCCESS: Total Database Chunks Formed: {len(processed_chunks)}\n")
+    print(f"SUCCESS: Total Database Chunks Formed: {len(processed_chunks)}\n")
     
     # 4. Mandatory Inspection Checkpoint Verification
     print("--- Milestone Checkpoint Validation: Inspecting 5 Random Chunks ---\n")

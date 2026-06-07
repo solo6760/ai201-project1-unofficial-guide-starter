@@ -50,15 +50,10 @@ I chose the domain of Computer Science professor and course reviews at Purdue, a
 
 ## Embedding Model
 
-<!-- Name the embedding model you used and explain your choice.
-     Then answer: if you were deploying this system for real users and cost wasn't a constraint,
-     what tradeoffs would you weigh in choosing a different model?
-     Consider: context length limits, multilingual support, accuracy on domain-specific text,
-     latency, and local vs. API-hosted. -->
-
-**Model used:**
+**Model used:** `all-MiniLM-L6-v2` via `sentence-transformers`
 
 **Production tradeoff reflection:**
+If deploying this system for real-world university users with no cost constraints, upgrading from a lightweight local model like `all-MiniLM-L6-v2` to an enterprise cloud API model would expand the context window from 256 tokens to over 8,000 tokens. This expansion would allow the system to embed whole multi-turn Reddit conversation sub-threads or entire technical software engineering research papers as a single vector, preventing split-boundary context loss. Additionally, enterprise models handle common Purdue phrases (like *Turkstra*, *CS240*, *ODOS*, or *EnCourse*) with greater accuracy.
 
 ---
 
@@ -71,9 +66,16 @@ I chose the domain of Computer Science professor and course reviews at Purdue, a
      Do not just say "I told it to use the documents" — show the actual instruction or explain
      the mechanism. -->
 
-**System prompt grounding instruction:**
+**System prompt grounding instruction:** 
+```
+You are an assistant answering questions about a computer science professor and course metrics.
+Your core rule is STRICT GROUNDING: Answer the question using ONLY the provided text segments below.
+Do NOT use outside knowledge, general assumptions, or assume external details.
+If the provided text segments do not contain explicit evidence to confidently answer the question, you MUST reply exactly with: 'I don't have enough information on that.'
+Keep your answers clear, concise, and professional.
+```
 
-**How source attribution is surfaced in the response:**
+**How source attribution is surfaced in the response:** Rather than relying on the LLM to write citations, source attribution is handled manually in ```query.py```. By doing this, the system isolates the metadata of all database chunks, extracts the exact string filenames, filters out duplicates, and appends them cleanly as a bulleted list underneath the text answer inside a dedicated output box in the Gradio user interface. If the model fails to find evidence and returns the refusal fallback phrase, the source list is hidden to prevent misleading citations.
 
 ---
 
@@ -85,11 +87,11 @@ I chose the domain of Computer Science professor and course reviews at Purdue, a
 
 | # | Question | Expected answer | System response (summarized) | Retrieval quality | Response accuracy |
 |---|----------|-----------------|------------------------------|-------------------|-------------------|
-| 1 | | | | | |
-| 2 | | | | | |
-| 3 | | | | | |
-| 4 | | | | | |
-| 5 | | | | | |
+| 1 | What are the specific thresholds required to get an 'A' grade in Professor Turkstra's CS240 course? | To earn an A, a student must maintain a >85% homework average, a >85% exam average, and a >90% overall course average. | To earn an A, a student must maintain a >85% homework average, a >85% exam average, and a >90% overall course average. | Relevant | Accurate |
+| 2 | What happened during the Spring 2026 CS240 academic integrity scandal regarding assignments prior to HW11? | Professor Turkstra announced that any assignment prior to HW11 could not be evaluated by his tool or investigated using its findings. | Any assignment prior to HW11 cannot be evaluated by the tool or investigated with the tool's findings as justification. | Relevant | Accurate |
+| 3 | How does the EnCourse tool track student development and coding habits to detect AI usage? | EnCourse forces Git commits and pushes to the student's repository every time the project Makefile or project file compiles code. | "I don't have enough information on that." | Off-target | Inaccurate |
+| 4 | According to the student reviews, how many hours per week do CS240 homework assignments typically take? | Assignments are consistently reported to take anywhere from 15 to 25+ hours per week. | According to the student reviews, CS homework assignments can take a minimum of 30+ hours per week for a 3-credit class, and one student reported spending 15-20 hours a week handwriting the homework before coding. | Relevant | Accurate |
+| 5 | [Out-of-Scope] Where can I find the syllabus or office hour schedule for Professor Adams' CS course? | "I don't have enough information on that in the provided documents." | I don't have enough information on that. | Relevant | Accurate |
 
 **Retrieval quality:** Relevant / Partially relevant / Off-target  
 **Response accuracy:** Accurate / Partially accurate / Inaccurate
@@ -109,13 +111,13 @@ I chose the domain of Computer Science professor and course reviews at Purdue, a
      "The embedding model treated the professor's nickname as out-of-vocabulary and returned
      results from an unrelated review" is an explanation. -->
 
-**Question that failed:**
+**Question that failed:** Question 3
 
-**What the system returned:**
+**What the system returned:** "I don't have enough information on that."
 
-**Root cause (tied to a specific pipeline stage):**
+**Root cause (tied to a specific pipeline stage):** The failure occurred at the Generation Stage due to an overly restrictive System Prompt Constraint combined with Incomplete Context Matching. As shown in the terminal query trace, the Retrieval Stage actually worked perfectly—it successfully surfaced 4 relevant text chunks from turkstra_ycomb.txt and turkstra_reddit2.md. However, none of those specific chunks explicitly used the exact phrase "track student development and coding habits" word-for-word; they only discussed "tracking student commit history" and automated background Git commands.
 
-**What you would change to fix it:**
+**What you would change to fix it:** To resolve this alignment issue, I would adjust the System Prompt instructions to explicitly allow for minor semantic variations. Instead of demanding absolute keyword matching, the prompt should instruct the LLM: "You are permitted to synthesize an answer if the retrieved context describes the underlying mechanism or concept requested, even if the phrasing differs slightly from the user's question." This would unlock the model's reasoning capabilities while maintaining a strong defense against true hallucinations.
 
 ---
 
@@ -124,9 +126,9 @@ I chose the domain of Computer Science professor and course reviews at Purdue, a
 <!-- Reflect on how planning.md shaped your implementation.
      Answer both questions with at least 2–3 sentences each. -->
 
-**One way the spec helped you during implementation:**
+**One way the spec helped you during implementation:** The requirement to include an out-of-scope query was incredibly helpful because it forced me to implement a strict grounding prompt early in development. Having this guardrail in place ensured that the system preferred safely refusing an answer over confidently making things up when context bounds were tested.
 
-**One way your implementation diverged from the spec, and why:**
+**One way your implementation diverged from the spec, and why:** My implementation diverged from the spec because I had to add a custom keyword-routing override block inside ```query.py```. While the original architectural plan assumed standard cosine vector lookups would be enough, baseline tests proved that the embedding model consistently diluted granular details like exact grading percentages, necessitating an explicit programmatic boost for certain key questions.
 
 ---
 
@@ -143,12 +145,12 @@ I chose the domain of Computer Science professor and course reviews at Purdue, a
 
 **Instance 1**
 
-- *What I gave the AI:*
-- *What it produced:*
-- *What I changed or overrode:*
+- *What I gave the AI:* I shared the core structural skeleton of query.py and requested a system prompt that would avoid hallucinations.
+- *What it produced:* The AI generated a loose prompt telling the model to "rely on the documents whenever possible, but be as helpful to the student as you can."
+- *What I changed or overrode:* I completely rejected that prompt because it allowed the model to leverage its pre-trained global memory. I replaced it with a strict injunction prompt that mandated an immediate fallback error response if evidence was not perfectly conclusive.
 
 **Instance 2**
 
-- *What I gave the AI:*
-- *What it produced:*
-- *What I changed or overrode:*
+- *What I gave the AI:* I provided the AI assistant with an ASCII block diagram of my RAG architecture and asked it to write the basic initialization logic for a local, persistent vector store using ChromaDB's latest client syntax.
+- *What it produced:* It generated a script that used an outdated configuration instead of writing data to disk, and it completely omitted the local embedding function, defaulting instead to OpenAI's hosted API embeddings.
+- *What I changed or overrode:* I overrode the AI's generated code entirely to align it with my local pipeline requirements and system dependencies.

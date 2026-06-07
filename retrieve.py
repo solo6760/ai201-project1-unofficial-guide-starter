@@ -4,9 +4,7 @@ from chromadb.utils import embedding_functions
 from ingest import load_documents, clean_text, split_into_chunks
 
 def build_vector_store():
-    print("\n=========================================================")
     print("--- Initializing Milestone 4 Vector Store Construction ---")
-    print("=========================================================")
     
     # 1. Run the ingestion pipeline to collect text chunks
     raw_data = load_documents("documents")
@@ -52,7 +50,7 @@ def build_vector_store():
         metadatas=metadata_list,
         ids=ids_list
     )
-    print("[✓] SUCCESS: Database records written cleanly to local disk storage.")
+    print("SUCCESS: Database records written cleanly to local disk storage.")
     return collection
 
 def execute_semantic_search(collection, user_query, k=4):
